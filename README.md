@@ -7,6 +7,8 @@ Güncel **Türkçe Windows 10 / 11** ISO dosyasını, [UUP dump](https://uupdump
 - İsteğe bağlı olarak son güncellemeleri ekler
 - Yönetici olarak çalışır; en az 20 GB boş alan önerilir
 
+**İndir:** [Windows-ISO-Indir.exe](https://github.com/onselozden/Windows-ISO-Indir/raw/main/Windows-ISO-Indir.exe)
+
 Derleme: `derle.bat` (Windows'taki .NET Framework 4.x csc.exe ile).
 
 Hazırlayan: Önsel
