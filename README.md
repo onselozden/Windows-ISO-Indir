@@ -2,13 +2,13 @@
 
 Güncel **Türkçe Windows 10 / 11 / Server** ISO dosyasını, [UUP dump](https://uupdump.net) üzerinden doğrudan Microsoft sunucularından indirip oluşturan küçük bir Windows programı.
 
-Sistemi, mimariyi ve sürümü seç, **ISO Oluştur**'a bas. Program en güncel build'i kendisi bulur, indirir ve ISO'ya dönüştürür.
+Sistemi, mimariyi ve sürümü seç, **ISO Oluştur**'a bas. Program seçilen sürümün en güncel build'ini kendisi bulur, indirir ve ISO'ya dönüştürür.
 
 ## Seçenekler
 
-- Windows 11 (en güncel sürüm) – x64 / ARM64 – Pro, Home, Pro + Home
+- Windows 11 26H2 / 25H2 / 24H2 – x64 / ARM64 – Pro, Home, Pro + Home
 - Windows 10 22H2 – x64 / x86 – Pro, Home, Pro + Home
-- Windows Server (en güncel sürüm) – x64 – Standard, Datacenter, Standard + Datacenter
+- Windows Server 2025 / 2022 – x64 – Standard, Datacenter, Standard + Datacenter (Masaüstü ve Core)
 - Son güncellemeleri ISO'ya ekleme, bileşen temizliği
 
 ## Özellikler

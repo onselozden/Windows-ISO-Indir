@@ -29,10 +29,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.1 *> $null
+          gh release view v1.2 *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload v1.1 Windows-ISO-Indir.zip Windows-ISO-Indir.exe --clobber
+            gh release upload v1.2 Windows-ISO-Indir.zip Windows-ISO-Indir.exe --clobber
           } else {
-            gh release create v1.1 Windows-ISO-Indir.zip Windows-ISO-Indir.exe -t "Windows ISO İndir v1.1" -n "Windows-ISO-Indir.exe'yi indirip çalıştırın (yönetici izni ister)."
+            gh release create v1.2 Windows-ISO-Indir.zip Windows-ISO-Indir.exe -t "Windows ISO İndir v1.2" -n "Windows-ISO-Indir.exe'yi indirip çalıştırın (yönetici izni ister)."
           }
           exit 0

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -21,13 +21,13 @@ using Microsoft.Win32;
 [assembly: AssemblyProduct("Windows ISO İndir")]
 [assembly: AssemblyCompany("Önsel Özden")]
 [assembly: AssemblyCopyright("Hazırlayan: Önsel Özden")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 static class Program
 {
     public const string Ad = "Windows ISO İndir";
-    public const string Surum = "1.1";
+    public const string Surum = "1.2";
 
     [STAThread]
     static void Main()
@@ -120,38 +120,25 @@ class Urun
 
     static SurumSecenek S(string ad, params string[] onek) { return new SurumSecenek { Ad = ad, Onekler = onek }; }
 
-    static bool Icerir(string t, string s) { return t.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0; }
+        static readonly SurumSecenek[] Istemci = { S("Pro", "professional"), S("Home", "core"), S("Pro + Home", "professional", "core") };
+    static readonly SurumSecenek[] Sunucular = { S("Standard", "serverstandard"), S("Datacenter", "serverdatacenter"), S("Standard + Datacenter", "serverstandard", "serverdatacenter") };
+
+    static Urun W(string ad, string onek, string[] mimari) { return new Urun { Ad = ad, Aramalar = new[] { onek }, BaslikUygun = t => t.StartsWith(onek, StringComparison.OrdinalIgnoreCase), Mimariler = mimari, Surumler = Istemci }; }
+    static Urun Srv(string ad, string onek) { return new Urun { Ad = ad, Aramalar = new[] { onek }, BaslikUygun = t => t.StartsWith(onek, StringComparison.OrdinalIgnoreCase), Mimariler = new[] { "x64 (amd64)|amd64" }, Surumler = Sunucular, Sunucu = true }; }
+
+    static readonly string[] W11 = { "x64 (amd64)|amd64", "ARM64|arm64" };
 
     public static readonly Urun[] Hepsi =
     {
-        new Urun
-        {
-            Ad = "Windows 11 (en güncel sürüm)",
-            Aramalar = new[] { "Windows 11, version" },
-            BaslikUygun = t => t.StartsWith("Windows 11, version", StringComparison.OrdinalIgnoreCase),
-            Mimariler = new[] { "x64 (amd64)|amd64", "ARM64|arm64" },
-            Surumler = new[] { S("Pro", "professional"), S("Home", "core"), S("Pro + Home", "professional", "core") }
-        },
-        new Urun
-        {
-            Ad = "Windows 10 22H2",
-            Aramalar = new[] { "Windows 10, version 22H2" },
-            BaslikUygun = t => t.StartsWith("Windows 10, version 22H2", StringComparison.OrdinalIgnoreCase),
-            Mimariler = new[] { "x64 (amd64)|amd64", "x86 (32 bit)|x86" },
-            Surumler = new[] { S("Pro", "professional"), S("Home", "core"), S("Pro + Home", "professional", "core") }
-        },
-        new Urun
-        {
-            Ad = "Windows Server (en güncel sürüm)",
-            Aramalar = new[] { "Windows Server", "server operating system" },
-            BaslikUygun = t => Icerir(t, "server") && !Icerir(t, "Insider") && !Icerir(t, "Preview") && !Icerir(t, "Azure")
-                               && !Icerir(t, "Cumulative") && !Icerir(t, "Update for") && !Icerir(t, "vNext"),
-            Mimariler = new[] { "x64 (amd64)|amd64" },
-            Surumler = new[] { S("Standard", "serverstandard"), S("Datacenter", "serverdatacenter"), S("Standard + Datacenter", "serverstandard", "serverdatacenter") },
-            Sunucu = true
-        }
+        W("Windows 11 26H2", "Windows 11, version 26H2", W11),
+        W("Windows 11 25H2", "Windows 11, version 25H2", W11),
+        W("Windows 11 24H2", "Windows 11, version 24H2", W11),
+        W("Windows 10 22H2", "Feature update to Windows 10, version 22H2", new[] { "x64 (amd64)|amd64", "x86 (32 bit)|x86" }),
+        Srv("Windows Server 2025", "Windows Server 2025"),
+        Srv("Windows Server 2022", "Feature update to Microsoft server operating system, version 21H2")
     };
 }
+
 
 class BuildBilgi
 {
@@ -174,8 +161,13 @@ static class Uup
 
     static Dictionary<string, object> Json(string url)
     {
-        string txt;
-        using (var wc = Istemci()) txt = wc.DownloadString(url);
+        string txt = "";
+        for (int i = 0; i < 4; i++)
+        {
+            using (var wc = Istemci()) txt = wc.DownloadString(url);
+            if (txt.TrimStart().StartsWith("{")) break;
+            Thread.Sleep(5000); // UUP dump istek sınırı
+        }
         var ser = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         var kok = ser.DeserializeObject(txt) as Dictionary<string, object>;
         object r;
@@ -193,6 +185,8 @@ static class Uup
         if (o is IEnumerable && !(o is string)) return ((IEnumerable)o).Cast<object>();
         return new object[0];
     }
+
+    static bool Icerir(string t, string s) { return t.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0; }
 
     static string D(Dictionary<string, object> d, string k)
     {
@@ -218,6 +212,7 @@ static class Uup
                 if (d == null) continue;
                 var b = new BuildBilgi { Uuid = D(d, "uuid"), Baslik = D(d, "title"), Build = D(d, "build"), Mimari = D(d, "arch") };
                 if (b.Uuid.Length == 0 || !u.BaslikUygun(b.Baslik)) continue;
+                if (Icerir(b.Baslik, "Insider")) continue;
                 if (!string.Equals(b.Mimari, mimari, StringComparison.OrdinalIgnoreCase)) continue;
                 if (enIyi == null || Ver(b.Build) > Ver(enIyi.Build)) enIyi = b;
             }
@@ -304,7 +299,7 @@ class AnaForm : Form
 
         pnlKart = new Panel { Location = new Point(20, y0 + 70), Size = new Size(500, 230) };
         int ry = 14;
-        cmbUrun = Satir("Windows", ry); ry += 38;
+        cmbUrun = Satir("Sistem", ry); ry += 38;
         cmbMimari = Satir("Mimari", ry); ry += 38;
         cmbSurum = Satir("Sürüm", ry); ry += 38;
         pnlKart.Controls.Add(new Label { Text = "Kayıt yeri", Location = new Point(14, ry + 3), Size = new Size(90, 24) });
