@@ -1,0 +1,38 @@
+name: Derle
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Exe derle
+        run: |
+          & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /target:winexe /codepage:65001 /win32icon:assets\logo.ico /win32manifest:assets\app.manifest /resource:assets\logo96.png,logo96.png /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll /out:Windows-ISO-Indir.exe src\WinIsoIndir.cs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive -Path Windows-ISO-Indir.exe -DestinationPath Windows-ISO-Indir.zip -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows-ISO-Indir
+          path: Windows-ISO-Indir.exe
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.1 *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload v1.1 Windows-ISO-Indir.zip Windows-ISO-Indir.exe --clobber
+          } else {
+            gh release create v1.1 Windows-ISO-Indir.zip Windows-ISO-Indir.exe -t "Windows ISO İndir v1.1" -n "Windows-ISO-Indir.exe'yi indirip çalıştırın (yönetici izni ister)."
+          }
+          exit 0
